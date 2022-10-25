@@ -1,27 +1,25 @@
 import Button from 'react-bootstrap/esm/Button';
 import Form from 'react-bootstrap/Form';
 import CardList from './CardList';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { Context } from '../context/TaskContext';
+import ModalForm from './ModalForm';
+import SpinnerForm from './SpinnerForm';
 
 export default function NoteForm() {
     const [title, setTitle] = useState('')
     const [descrip, setDescrip] = useState('')
-    const [notes, setNotes] = useState(JSON.parse(localStorage.getItem('notes')) || [])
+    const [show, setShow] = useState(false);
+    const { createTask, notes, loading } = useContext(Context)
     
     const handleForm = (e) => {
         e.preventDefault()
 
         if (title.trim().length == 0 || descrip.trim().length == 0) {
-            return alert('Hay campos vacios')
+            return setShow(true)
         }
 
-        const notas = [...notes, {
-            title: title,
-            description: descrip
-        }]
-
-        localStorage.setItem('notes', JSON.stringify(notas))
-        setNotes(notas)
+        createTask(title, descrip)
         setTitle('')
         setDescrip('')
         e.target.reset()
@@ -39,8 +37,9 @@ export default function NoteForm() {
                     <Form.Control onChange={(e) => setDescrip(e.target.value)} placeholder="Tomate, cebolla..." />
                 </Form.Group>
                 <Button className='mb-5' as="input" type="submit" value="Agregar" />
-            </Form>
-            {notes.length === 0 ? <h1>Aun no hay tareas</h1> : <CardList notes={notes} />} 
+            </Form>            
+            {loading ? <SpinnerForm /> : notes.length === 0 ? <h1 className='mt-5'>No hay notas</h1> : <CardList notes={notes} />} 
+            {show && <ModalForm show={show} setShow={setShow}/>}
         </>
     );
 }
